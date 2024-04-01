@@ -1,3 +1,4 @@
+
 from pprint import pprint
 
 # import plotly.figure_factory as ff
@@ -36,9 +37,13 @@ In this task you will explore different methods to find a good value for k
 # Change the arguments and return according to 
 # the question asked. 
 
-def fit_kmeans():
-    return None
+from sklearn.cluster import KMeans
 
+def fit_kmeans(X,k):
+    kmeans = KMeans(n_clusters=k)
+    kmeans.fit(X)
+    return kmeans.inertia_
+    #return None
 
 
 def compute():
@@ -50,7 +55,10 @@ def compute():
     """
 
     # dct: return value from the make_blobs function in sklearn, expressed as a list of three numpy arrays
-    dct = answers["2A: blob"] = [np.zeros(0)]
+    blob_data, _ = make_blobs(n_samples=20, centers=5, center_box=(-20, 20), random_state=12)
+    mb_1=blob_data[0:,0:1]
+    mb_2=blob_data[0:,1:]
+    dct = answers["2A: blob"] = [mb_1,mb_2,_]
 
     """
     B. Modify the fit_kmeans function to return the SSE (see Equations 8.1 and 8.2 in the book).
@@ -58,6 +66,7 @@ def compute():
 
     # dct value: the `fit_kmeans` function
     dct = answers["2B: fit_kmeans"] = fit_kmeans
+    result = dct
 
     """
     C.	Plot the SSE as a function of k for k=1,2,….,8, and choose the optimal k based on the elbow method.
@@ -65,17 +74,51 @@ def compute():
 
     # dct value: a list of tuples, e.g., [[0, 100.], [1, 200.]]
     # Each tuple is a (k, SSE) pair
-    dct = answers["2C: SSE plot"] = [[0.0, 100.0]]
+
+    sse_values = []
+    k_range = range(1, 9)
+    for k in k_range:
+        sse = fit_kmeans(blob_data, k)
+        sse_values.append([k, sse])
+
+    dct = answers["2C: SSE plot"] = sse_values
+    def plot_sse(sse_values):
+    # Unzip the list of tuples into k and SSE values
+        k_values, sse = zip(*sse_values)
+
+    # Plot SSE as a function of k
+        plt.plot(k_values, sse, marker='o', linestyle='-')
+        plt.xlabel('Number of clusters (k)')
+        plt.ylabel('Sum of Squared Errors (SSE)')
+        plt.title('SSE as a function of k')
+        plt.xticks(k_values)
+        plt.grid(True)
+        plt.show()
+    # Call the function to plot SSE
+    plot_sse(sse_values)
 
     """
     D.	Repeat part 2.C for inertia (note this is an attribute in the kmeans estimator called _inertia). Do the optimal k’s agree?
     """
 
-    # dct value has the same structure as in 2C
-    dct = answers["2D: inertia plot"] = [[0.0, 100.0]]
+    inertia_values = []
+    k_range = range(1,9)
+    for k in k_range:
+        inertia = fit_kmeans(blob_data, k)
+        inertia_values.append([k, inertia])
 
+    answers["2D: inertia plot"] = inertia_values
+    '''
+    # Determine if optimal k's agree
+    optimal_k_sse = min(sse_values, key=lambda x: x[1])[0]
+    optimal_k_inertia = min(inertia_values, key=lambda x: x[1])[0]
+    do_ks_agree = "yes" if optimal_k_sse == optimal_k_inertia else "no"
+    
+    # dct value has the same structure as in 2C
+    dct = answers["2D: inertia plot"] = do_ks_agree
+    '''
     # dct value should be a string, e.g., "yes" or "no"
-    dct = answers["2D: do ks agree?"] = ""
+    dct = answers["2D: do ks agree?"] = "yes"
 
     return answers
 
